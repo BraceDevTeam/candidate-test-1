@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    public function customer()
-    {
-        return $this->belongsTo(Order::class);
-    }
+    use SoftDeletes;
+
+    protected $fillable = ['text', 'description', 'cost'];
+
 }
+
