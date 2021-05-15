@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CustomersController extends Controller
 {
@@ -35,7 +36,25 @@ class CustomersController extends Controller
      */
     public function store(Request $request)
     {
-        $customer = Customer::create($request->all());
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'email' => 'required|email|unique:customers',
+            'phone' => 'required',
+            'company' => 'required'
+        ]);
+
+        $email_validation_error = $validator->errors()->first('email') ?? null;
+
+        $customer = new Customer($request->all());
+
+        if ($validator->fails()) {
+            if($email_validation_error) {
+                return redirect()->route('customers.create')->withMessage($email_validation_error);
+            }
+        }
+
+        $customer->save();
 
         return redirect()->route('customers.edit', $customer)->withMessage('Customer created successfully.');
     }
