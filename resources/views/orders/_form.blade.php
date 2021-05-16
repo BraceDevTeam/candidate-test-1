@@ -31,7 +31,7 @@
   <div class="col-md-8">
     <div class="form-group">
       <label>Select tags</label>
-      <select multiple class="form-control" name="tag_ids[]" id="select2_tags" required="true">
+      <select multiple class="form-control" name="tags_id[]" id="select2_tags" required="true">
         @foreach($all_tags as $tag)
         <option name = "tag_{{ $tag->id }}" value = "{{ $tag->id }}" > {{ $tag->name }} </option>
         @endforeach

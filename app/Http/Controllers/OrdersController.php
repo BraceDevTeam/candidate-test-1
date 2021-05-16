@@ -57,13 +57,12 @@ class OrdersController extends Controller
      */
     public function store(Request $request)
     {
-        return $request;
-
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'description' => 'required',
             'cost' => 'required',
-            'customer_id' => 'required'
+            'customer_id' => 'required',
+            'tags_id' => 'required'
         ]);
 
         if($validator->fails()) {
