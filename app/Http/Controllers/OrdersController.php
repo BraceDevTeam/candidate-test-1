@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Tag;
+use App\OrderTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -68,8 +69,16 @@ class OrdersController extends Controller
         if($validator->fails()) {
             return redirect()->route('orders.create')->withMessage($validator->errors());
         }
-
+        
         $order = Order::create($request->all());
+        
+        foreach($request->tags_id as $tag_id)
+        {
+            $ordertag = new OrderTag;   
+            $ordertag->order_id = $order->id;
+            $ordertag->tag_id = $tag_id;
+            $ordertag->save();
+        }
 
         return redirect()->route('orders.edit', $order->id)->withMessage('Order created successfully.');
     }
