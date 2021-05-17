@@ -43,7 +43,7 @@
   <div class="col-md-12">
     <div class="form-group">
       <label>Description</label>
-      <textarea name="description" class="form-control" value="{{ old('description', $order->description) }}" required="true"></textarea>
+      <textarea name="description" class="form-control" required="true">{{ old('description', $order->description) }}</textarea>
     </div>
   </div>
 </div>

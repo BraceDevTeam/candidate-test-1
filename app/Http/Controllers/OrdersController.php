@@ -70,17 +70,20 @@ class OrdersController extends Controller
             return redirect()->route('orders.create')->withMessage($validator->errors());
         }
         
-        $order = Order::create($request->all());
-        
-        foreach($request->tags_id as $tag_id)
-        {
-            $ordertag = new OrderTag;   
-            $ordertag->order_id = $order->id;
-            $ordertag->tag_id = $tag_id;
-            $ordertag->save();
+        try{
+            $order = Order::create($request->all());
+            foreach($request->tags_id as $tag_id){
+                $ordertag = new OrderTag;
+                $ordertag->order_id = $order->id;
+                $ordertag->tag_id = $tag_id;
+                $ordertag->save();
+            }
+            
+            return redirect()->route('orders.edit', $order->id)->withMessage('Order created successfully.');  
         }
-
-        return redirect()->route('orders.edit', $order->id)->withMessage('Order created successfully.');
+        catch(Exception $e){
+            return redirect()->route('orders.create', $order->id)->withMessage('Order not created.');  
+        }
     }
 
     /**
