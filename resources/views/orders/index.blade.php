@@ -29,11 +29,12 @@
             <td>{{ $order->cost }}</td>
             <td><a href="{{ route('orders.edit', $order) }}">[Edit]</a></td>
             <td><a href="#" onclick="event.preventDefault(); document.getElementById('delete-order-{{ $order->id }}-form').submit();">[Delete]</a></td>
-
-            <form id="delete-order-{{ $order->id }}-form" action="{{ route('orders.destroy', $order) }}" method="POST" style="display: none;">
-                @method('DELETE')
+            <td>
+              <form id="delete-order-{{ $order->id }}-form" action="{{ route('orders.destroy', $order) }}" method="POST" style="display: none;">
                 @csrf
-            </form>
+                @method('DELETE')
+              </form>
+            </td>
           </tr>
         @endforeach
       </tbody>

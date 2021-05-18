@@ -90,8 +90,7 @@ class CustomersController extends Controller
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Customer $customer)
-    {
+    public function destroy(Customer $customer) {
         $customer->delete();
 
         return redirect()->route('customers.index')->withMessage('Customer deleted successfully');
