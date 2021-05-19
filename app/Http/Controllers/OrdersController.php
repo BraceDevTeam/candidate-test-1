@@ -150,6 +150,14 @@ class OrdersController extends Controller
         if($validator->fails()) {
             return redirect()->route('orders.edit', compact(['order', 'all_customers', 'all_tags']))->withMessage($validator->errors());
         }
+        $order_tags = $this->getTagsByOrderId($order->id);
+        $tags_to_remove = [];
+
+        foreach($order_tags as $order_tag) {
+            if(!in_array($order_tag->tag_id, $request->tags_id)) {
+                $tags_to_remove [] = $order_tag->tag_id;
+            }
+        }
 
         try {
             foreach($request->tags_id as $tag_id){
@@ -165,6 +173,13 @@ class OrdersController extends Controller
                 }
             }
             unset($request->tags_id);
+            foreach($tags_to_remove as $tag_to_remove) {
+                $ordertag = OrderTag::select()
+                    ->where('tag_id', $tag_to_remove)
+                    ->where('order_id', $order->id)
+                    ->get()->first();
+                $ordertag->delete();
+            }
             $order->update($request->all());
 
             return redirect()->route('orders.edit', $order->id)->withMessage('Order updated successfully.');  
