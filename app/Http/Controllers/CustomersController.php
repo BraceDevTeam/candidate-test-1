@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Contract;
+use App\Models\Order;
 
 class CustomersController extends Controller
 {
@@ -91,8 +93,32 @@ class CustomersController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Customer $customer) {
-        $customer->delete();
+        try {
+            $customer->delete();
 
-        return redirect()->route('customers.index')->withMessage('Customer deleted successfully');
+            $contracts_to_delete = Contract::select()
+                ->where('customer_id', $customer->id)
+                ->get();
+
+            $orders_to_delete = Order::select()
+                ->where('customer_id', $customer->id)
+                ->get();
+
+            if($contracts_to_delete) {
+                foreach($contracts_to_delete as $contract_to_delete) {
+                    $contract_to_delete->delete();
+                }
+            }
+
+            if($orders_to_delete) {
+                foreach($orders_to_delete as $order_to_delete) {
+                    $order_to_delete->delete();
+                }
+            }
+
+            return redirect()->route('customers.index')->withMessage('Customer deleted successfully');
+        } catch(Exception $exception) {
+            return redirect()->route('customers.index')->withMessage('An error occured, retry...');
+        }
     }
 }

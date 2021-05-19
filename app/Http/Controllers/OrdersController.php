@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Tag;
+use App\Contract;
 use App\OrderTag;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -98,6 +100,11 @@ class OrdersController extends Controller
                 $ordertag->tag_id = $tag_id;
                 $ordertag->save();
             }
+
+            $contract = new Contract;
+            $contract->order_id = $order->id;
+            $contract->customer_id = $request->customer_id;
+            $contract->save();
 
             return redirect()->route('orders.edit', $order->id)->withMessage('Order created successfully.');  
         }
@@ -196,8 +203,21 @@ class OrdersController extends Controller
      */
     public function destroy(Order $order)
     {
-        $order->delete();
+        try {
+            $order->delete();
 
-        return redirect()->route('orders.index')->withMessage('Order deleted successfully');
+            $contract_to_delete = Contract::select()
+                ->where('order_id', $order->id)
+                ->get()->first();
+
+            if($contract_to_delete) {
+                $contract_to_delete->delete();
+            }
+
+            return redirect()->route('orders.index')->withMessage('Order deleted successfully');
+        } catch(Exception $exception) {
+            return redirect()->route('orders.index')->withMessage('An error occured, retry...');
+        }
+
     }
 }
