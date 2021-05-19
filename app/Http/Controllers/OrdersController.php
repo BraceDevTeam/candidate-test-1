@@ -38,6 +38,20 @@ class OrdersController extends Controller
         )->get();
     }
 
+    
+    public function orderValidator($request)
+    {
+        $validator = Validator::make($request, [
+            'title' => 'required',
+            'description' => 'required',
+            'cost' => 'required',
+            'customer_id' => 'required',
+            'tags_id' => 'required'
+        ]);
+            
+        return $validator;
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -58,13 +72,7 @@ class OrdersController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required',
-            'description' => 'required',
-            'cost' => 'required',
-            'customer_id' => 'required',
-            'tags_id' => 'required'
-        ]);
+        $validator = $this->orderValidator($request->all());
 
         if($validator->fails()) {
             return redirect()->route('orders.create')->withMessage($validator->errors());
@@ -112,7 +120,7 @@ class OrdersController extends Controller
         ->where('orders.id', $order_id)
         ->get()->first();
 
-        return view('orders.edit', compact(['order', 'all_customers', 'all_tags']));
+        return view('orders.edit', compact(['all_tags','order', 'all_customers']));
     }
 
     /**
@@ -127,7 +135,32 @@ class OrdersController extends Controller
         $all_customers = $this->getAllCustomers();
         $all_tags = $this->getAllTags();
 
+        $validator = $this->orderValidator($request->all());
+
+        if($validator->fails()) {
+            return redirect()->route('orders.edit', compact(['order', 'all_customers', 'all_tags']))->withMessage($validator->errors());
+        }
+
         $order->update($request->all());
+        
+        foreach($request->tags_id as $tag_id){
+            $order_tag_by_orderId = OrderTag::select()
+            ->where('order_id', $order->id)
+            ->where('tag_id',$tag_id)
+            ->get()->first();
+            if (!$order_tag_by_orderId){
+                $ordertag = new OrderTag;
+                $ordertag->tag_id = $tag_id;
+                $ordertag->order_id =  $order->id;
+                $ordertag->save();
+            }
+        }
+
+        // $order_tag_delete = OrderTag::select(
+        //     'OrderTag.tag AS title',
+        // )
+        // ->where('order_id', $order->id)
+        // ->
 
         $order = Order::select(
             'orders.id AS id',
