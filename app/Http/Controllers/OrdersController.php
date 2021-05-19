@@ -38,6 +38,15 @@ class OrdersController extends Controller
         )->get();
     }
 
+    private function getTagsByOrderId($order_id) {
+        return OrderTag::select(
+            'orders_tags.tag_id AS tag_id',
+            'tags.name AS tag_name'
+            )
+            ->join('tags', 'orders_tags.tag_id', '=', 'tags.id')
+            ->where('order_id', $order_id)
+            ->get();
+    }
     
     public function orderValidator($request)
     {
@@ -61,7 +70,9 @@ class OrdersController extends Controller
     {
         $all_customers = $this->getAllCustomers();
         $all_tags = $this->getAllTags();
-        return view('orders.create', compact(['all_customers', 'all_tags']))->withOrder(new Order);
+        $tags = null;
+
+        return view('orders.create', compact(['all_customers', 'all_tags', 'tags']))->withOrder(new Order);
     }
 
     /**
@@ -77,16 +88,17 @@ class OrdersController extends Controller
         if($validator->fails()) {
             return redirect()->route('orders.create')->withMessage($validator->errors());
         }
-        
+
         try{
             $order = Order::create($request->all());
+
             foreach($request->tags_id as $tag_id){
                 $ordertag = new OrderTag;
                 $ordertag->order_id = $order->id;
                 $ordertag->tag_id = $tag_id;
                 $ordertag->save();
             }
-            
+
             return redirect()->route('orders.edit', $order->id)->withMessage('Order created successfully.');  
         }
         catch(Exception $e){
@@ -104,6 +116,7 @@ class OrdersController extends Controller
     {
         $all_customers = $this->getAllCustomers();
         $all_tags = $this->getAllTags();
+        $tags = $this->getTagsByOrderId($order_id);
 
         $order = Order::select(
             'orders.id AS id',
@@ -120,7 +133,7 @@ class OrdersController extends Controller
         ->where('orders.id', $order_id)
         ->get()->first();
 
-        return view('orders.edit', compact(['all_tags','order', 'all_customers']));
+        return view('orders.edit', compact(['tags', 'all_tags', 'order', 'all_customers']));
     }
 
     /**
@@ -132,52 +145,31 @@ class OrdersController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        $all_customers = $this->getAllCustomers();
-        $all_tags = $this->getAllTags();
-
         $validator = $this->orderValidator($request->all());
 
         if($validator->fails()) {
             return redirect()->route('orders.edit', compact(['order', 'all_customers', 'all_tags']))->withMessage($validator->errors());
         }
 
-        $order->update($request->all());
-        
-        foreach($request->tags_id as $tag_id){
-            $order_tag_by_orderId = OrderTag::select()
-            ->where('order_id', $order->id)
-            ->where('tag_id',$tag_id)
-            ->get()->first();
-            if (!$order_tag_by_orderId){
-                $ordertag = new OrderTag;
-                $ordertag->tag_id = $tag_id;
-                $ordertag->order_id =  $order->id;
-                $ordertag->save();
+        try {
+            $order->update($request->all());
+
+            foreach($request->tags_id as $tag_id){
+                $order_tag_by_orderId = OrderTag::select()
+                ->where('order_id', $order->id)
+                ->where('tag_id',$tag_id)
+                ->get()->first();
+                if (!$order_tag_by_orderId){
+                    $ordertag = new OrderTag;
+                    $ordertag->tag_id = $tag_id;
+                    $ordertag->order_id =  $order->id;
+                    $ordertag->save();
+                }
             }
+            return redirect()->route('orders.edit', $order->id)->withMessage('Order updated successfully.');  
+        } catch(\Exception $exception) {
+            return redirect()->route('orders.edit', $order->id)->withMessage('An error occured, retry.');
         }
-
-        // $order_tag_delete = OrderTag::select(
-        //     'OrderTag.tag AS title',
-        // )
-        // ->where('order_id', $order->id)
-        // ->
-
-        $order = Order::select(
-            'orders.id AS id',
-            'orders.title AS title',
-            'orders.description AS description',
-            'orders.cost AS cost',
-            'orders.customer_id AS customer_id',
-            'customers.first_name AS customer_first_name',
-            'customers.last_name AS customer_last_name'
-        )
-        ->join('customers', 'orders.customer_id', '=', 'customers.id')
-        ->whereNull('orders.deleted_at')
-        ->whereNull('customers.deleted_at')
-        ->where('orders.id', $order->id)
-        ->get()->first();
-
-        return view('orders.edit', compact(['order', 'all_customers', 'all_tags']))->withMessage('Order updated successfully.');
     }
 
     /**

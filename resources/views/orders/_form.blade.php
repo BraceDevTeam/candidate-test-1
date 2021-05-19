@@ -10,12 +10,12 @@
       <label>Select customer</label>
       <select class="form-control" name="customer_id" required="true">
         @if ($order->customer_id)
-        <option value = "{{ $order->customer_id }}" >{{ $order->customer_first_name }} {{ $order->customer_last_name }} </option>
+          <option value = "{{ $order->customer_id }}" >{{ $order->customer_first_name }} {{ $order->customer_last_name }} </option>
         @endif
-        @foreach($all_customers as $customer)
-        @if ($customer->id != $order->customer_id)
-        <option value = "{{ $customer->id }}" >{{ $customer->first_name }} {{ $customer->last_name }}</option>
-        @endif
+        @foreach ($all_customers as $customer)
+          @if ($customer->id != $order->customer_id)
+            <option value = "{{ $customer->id }}" >{{ $customer->first_name }} {{ $customer->last_name }}</option>
+          @endif
         @endforeach
       </select>
     </div>
@@ -28,12 +28,33 @@
       <input type="number" name="cost" class="form-control" value="{{ old('cost', $order->cost) }}" required="true">
     </div>
   </div>
+
   <div class="col-md-8">
     <div class="form-group">
       <label>Select tags</label>
       <select multiple class="form-control" name="tags_id[]" id="select2_tags" required="true">
-        @foreach($all_tags as $tag)
-        <option name = "tag_{{ $tag->id }}" value = "{{ $tag->id }}" > {{ $tag->name }} </option>
+        @if ($tags)
+          @foreach ($tags as $tag)
+            <option value="{{ $tag->tag_id }}" selected>{{ $tag->tag_name }}</option>
+          @endforeach
+        @endif
+
+        @foreach ($all_tags as $all_tag)
+          @php
+            $same_id = true;
+          @endphp
+          @if ($tags)
+            @foreach ($tags as $tag)
+              @if ($all_tag->id == $tag->tag_id)
+                @php
+                  $same_id = false;
+                @endphp
+              @endif
+            @endforeach
+          @endif
+          @if ($same_id)
+            <option name = "tag_{{ $all_tag->id }}" value = "{{ $all_tag->id }}" > {{ $all_tag->name }} </option>
+          @endif
         @endforeach
       </select>
     </div>
@@ -47,6 +68,7 @@
     </div>
   </div>
 </div>
+
 <script type="text/javascript">
   $(document).ready(function() {
     $('#select2_tags').select2();
