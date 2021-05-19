@@ -152,13 +152,11 @@ class OrdersController extends Controller
         }
 
         try {
-            $order->update($request->all());
-
             foreach($request->tags_id as $tag_id){
                 $order_tag_by_orderId = OrderTag::select()
-                ->where('order_id', $order->id)
-                ->where('tag_id',$tag_id)
-                ->get()->first();
+                    ->where('order_id', $order->id)
+                    ->where('tag_id', $tag_id)
+                    ->get()->first();
                 if (!$order_tag_by_orderId){
                     $ordertag = new OrderTag;
                     $ordertag->tag_id = $tag_id;
@@ -166,9 +164,12 @@ class OrdersController extends Controller
                     $ordertag->save();
                 }
             }
+            unset($request->tags_id);
+            $order->update($request->all());
+
             return redirect()->route('orders.edit', $order->id)->withMessage('Order updated successfully.');  
         } catch(\Exception $exception) {
-            return redirect()->route('orders.edit', $order->id)->withMessage('An error occured, retry.');
+            return redirect()->route('orders.edit', $order->id)->withMessage('An error occured, retry...');
         }
     }
 
