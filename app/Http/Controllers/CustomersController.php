@@ -39,11 +39,11 @@ class CustomersController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|email|unique:customers',
-            'phone' => 'required',
-            'company' => 'required'
+            'first_name' => 'required|max:255',
+            'last_name' => 'required|max:255',
+            'email' => 'required|email|unique:customers|max:255',
+            'phone' => 'required|max:255',
+            'company' => 'required|max:255'
         ]);
 
         $email_validation_error = $validator->errors()->first('email') ?? null;
@@ -81,9 +81,24 @@ class CustomersController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        $customer->update($request->all());
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|max:255',
+            'last_name' => 'required|max:255',
+            'email' => "required|email|unique:customers,email,$customer->id|max:255",
+            'phone' => 'required|max:255',
+            'company' => 'required|max:255'
+        ]);
 
-        return view('customers.edit', compact('customer'))->withMessage('Customer updated successfully.');
+        if ($validator->fails()) {
+            return redirect()->route('customers.edit', $customer)->withMessage($validator->errors());
+        }
+
+        try {
+            $customer->update($request->all());
+            return redirect()->route('customers.edit', $customer)->withMessage('Customer updated successfully.');
+        } catch(Exception $exception) {
+            return redirect()->route('customers.edit', $customer)->withMessage('An error occured, retry...');
+        }
     }
 
     /**

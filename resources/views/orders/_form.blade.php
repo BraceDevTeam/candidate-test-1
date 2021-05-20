@@ -8,7 +8,7 @@
   <div class="col-md-6">
     <div class="form-group">
       <label>Select customer</label>
-      <select class="form-control" name="customer_id" required="true">
+      <select class="form-control" name="customer_id" required="true" {{ isset($order->customer_id) ? "disabled" : "" }}>
         @if ($order->customer_id)
           <option value = "{{ $order->customer_id }}" >{{ $order->customer_first_name }} {{ $order->customer_last_name }} </option>
         @endif

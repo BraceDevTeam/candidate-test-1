@@ -152,10 +152,12 @@ class OrdersController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        $validator = $this->orderValidator($request->all());
+        $order_to_update = $request->all();
+        $order_to_update['customer_id'] = $order->customer_id;
 
+        $validator = $this->orderValidator($order_to_update);
         if($validator->fails()) {
-            return redirect()->route('orders.edit', compact(['order', 'all_customers', 'all_tags']))->withMessage($validator->errors());
+            return redirect()->route('orders.edit', compact('order'))->withMessage($validator->errors());
         }
         $order_tags = $this->getTagsByOrderId($order->id);
         $tags_to_remove = [];
@@ -169,9 +171,9 @@ class OrdersController extends Controller
         try {
             foreach($request->tags_id as $tag_id){
                 $order_tag_by_orderId = OrderTag::select()
-                    ->where('order_id', $order->id)
-                    ->where('tag_id', $tag_id)
-                    ->get()->first();
+                ->where('order_id', $order->id)
+                ->where('tag_id', $tag_id)
+                ->get()->first();
                 if (!$order_tag_by_orderId){
                     $ordertag = new OrderTag;
                     $ordertag->tag_id = $tag_id;
@@ -179,15 +181,15 @@ class OrdersController extends Controller
                     $ordertag->save();
                 }
             }
-            unset($request->tags_id);
+
             foreach($tags_to_remove as $tag_to_remove) {
                 $ordertag = OrderTag::select()
-                    ->where('tag_id', $tag_to_remove)
-                    ->where('order_id', $order->id)
-                    ->get()->first();
+                ->where('tag_id', $tag_to_remove)
+                ->where('order_id', $order->id)
+                ->get()->first();
                 $ordertag->delete();
             }
-            $order->update($request->all());
+            $order->update($order_to_update);
 
             return redirect()->route('orders.edit', $order->id)->withMessage('Order updated successfully.');  
         } catch(\Exception $exception) {
