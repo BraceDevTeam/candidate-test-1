@@ -42,6 +42,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('orders.index') }}">Orders</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url('contracts') }}">Contracts</a>
+                        </li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->

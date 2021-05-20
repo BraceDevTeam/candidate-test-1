@@ -13,8 +13,8 @@
       <thead class="thead-dark">
         <tr>
           <th scope="col">#</th>
-          <th scope="col">First</th>
-          <th scope="col">Last</th>
+          <th scope="col">First name</th>
+          <th scope="col">Last name</th>
           <th scope="col">Email</th>
           <th scope="col">Phone</th>
           <th scope="col">Company</th>
